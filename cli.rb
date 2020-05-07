@@ -9,6 +9,14 @@ def all_states
   end
 end
 
+def all_cities
+  begin
+    JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+  end
+end
+
 def ranking_by_state(id)
   state_id = all_states.select { |state| state['id'] == id }
   begin
@@ -29,6 +37,34 @@ end
 
 def ranking_by_state_female(id)
   state_id = all_states.select { |state| state['id'] == id }
+  begin
+    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=f")
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+  end
+end
+
+
+def ranking_by_city(id)
+  city_id = all_cities.select { |city|  city['id'] == id }
+  begin
+    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}")
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+  end
+end
+
+def ranking_by_city_male(id)
+  city_id = all_cities.select { |city| city['id'] == id }
+  begin
+    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=m")
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+  end
+end
+
+def ranking_by_city_female(id)
+  city_id = all_cities.select { |city| city['id'] == id }
   begin
     JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=f")
   rescue RestClient::ExceptionWithResponse => e
