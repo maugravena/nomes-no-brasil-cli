@@ -1,5 +1,6 @@
 require 'rest-client'
 require 'json'
+require 'uri'
 
 def all_states
   begin
@@ -67,6 +68,16 @@ def ranking_by_city_female(id)
   city_id = all_cities.select { |city| city['id'] == id }
   begin
     JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=f")
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+  end
+end
+
+def name_frequency(name1, name2='')
+  uri = URI.encode_www_form_component("#{name1}|#{name2}")
+  url = "https://servicodados.ibge.gov.br/api/v2/censos/nomes/#{uri}"
+  begin
+    JSON.parse(RestClient.get url)
   rescue RestClient::ExceptionWithResponse => e
     puts e.response
   end
