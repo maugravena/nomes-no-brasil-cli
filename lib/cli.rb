@@ -132,5 +132,3 @@ def frequency_table(names)
   rows = period.zip(rows_name1)
   return Terminal::Table.new :title => title, :headings => ['Periodo', names[0]], :rows => rows
 end
-
-print frequency_table(['mauricio', 'monica'])
