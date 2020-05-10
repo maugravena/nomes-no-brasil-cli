@@ -29,62 +29,6 @@ def remove_strings(arr)
   new_arr.flatten
 end
 
-
-
-def ranking_by_state(id)
-  state_id = all_states.select { |state| state['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
-def ranking_by_state_male(id)
-  state_id = all_states.select { |state| state['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=m")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
-def ranking_by_state_female(id)
-  state_id = all_states.select { |state| state['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=f")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
-def ranking_by_city(id)
-  city_id = all_cities.select { |city|  city['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
-def ranking_by_city_male(id)
-  city_id = all_cities.select { |city| city['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=m")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
-def ranking_by_city_female(id)
-  city_id = all_cities.select { |city| city['id'] == id }
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking?localidade=#{id}&sexo=f")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
 def name_frequency(name)
   # uri = URI.encode_www_form_component("#{name1}|#{name2}")
   # url = "https://servicodados.ibge.gov.br/api/v2/censos/nomes/#{uri}"
