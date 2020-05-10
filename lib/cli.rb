@@ -1,7 +1,36 @@
-require 'rest-client'
 require 'json'
-require 'uri'
 require 'terminal-table'
+
+class CLI
+  def self.run
+    CLI.all_states
+    CLI.all_cities
+  end
+
+  def self.all_states
+    begin
+      state_data = JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/estados')
+    rescue RestClient::ExceptionWithResponse => e
+      puts e.response
+    end
+
+    state_data.each do |state|
+      State.create(id: state['id'], name: state['nome'], initials: state['sigla'])
+    end
+  end
+
+  def self.all_cities
+    begin
+      data_city = JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
+    rescue RestClient::ExceptionWithResponse => e
+      puts e.response
+    end
+
+    data_city.each do |city|
+      City.create(id: city['id'], name: city['nome'])
+    end
+  end
+end
 
 def hash_to_array_values(arr)
   res_arr = []
@@ -24,21 +53,7 @@ def remove_strings(arr)
   new_arr.flatten
 end
 
-def all_states
-  begin
-    JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/estados')
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
 
-def all_cities
-  begin
-    JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
 
 def ranking_by_state(id)
   state_id = all_states.select { |state| state['id'] == id }
