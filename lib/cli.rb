@@ -3,32 +3,8 @@ require 'terminal-table'
 
 class CLI
   def self.run
-    CLI.all_states
-    CLI.all_cities
-  end
-
-  def self.all_states
-    begin
-      state_data = JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/estados')
-    rescue RestClient::ExceptionWithResponse => e
-      puts e.response
-    end
-
-    state_data.each do |state|
-      State.create(id: state['id'], name: state['nome'], initials: state['sigla'])
-    end
-  end
-
-  def self.all_cities
-    begin
-      data_city = JSON.parse(RestClient.get 'https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
-    rescue RestClient::ExceptionWithResponse => e
-      puts e.response
-    end
-
-    data_city.each do |city|
-      City.create(id: city['id'], name: city['nome'])
-    end
+    State.all_states
+    City.all_cities
   end
 end
 
