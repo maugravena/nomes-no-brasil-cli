@@ -39,8 +39,7 @@ class Name
       '&sexo='
     end
 
-    def by_state(state)
-      state_id = state['id']
+    def by_state(state_id)
       url = "#{ranking_url}#{locality_filter}#{state_id}"
       get_data(url)
     end
@@ -50,8 +49,7 @@ class Name
       get_data("#{ranking_url}#{locality_filter}#{city_id}")
     end
 
-    def by_state_and_gender(state, gender)
-      state_id = state['id']
+    def by_state_and_gender(state_id, gender)
       url = "#{ranking_url}#{locality_filter}#{state_id}#{gender_filter}#{gender}"
       get_data(url)
     end
@@ -67,13 +65,10 @@ class Name
     end
 
     # Primeira opção - ranking de nomes por estado
-    def state_tables(state_initials)
-      state = State.find_by(initials: state_initials.upcase)
-      return p 'Estado não encontrado' if state.blank?
-
-      puts table('Geral', rows(by_state(state)))
-      puts table('Sexo feminino', rows(by_state_and_gender(state, 'f')))
-      puts table('Sexo masculino', rows(by_state_and_gender(state, 'm')))
+    def state_tables(state_id)
+      puts table('Geral', rows(by_state(state_id)))
+      puts table('Sexo feminino', rows(by_state_and_gender(state_id, 'f')))
+      puts table('Sexo masculino', rows(by_state_and_gender(state_id, 'm')))
     end
 
     # Segunda opção - ranking de nomes por cidade
