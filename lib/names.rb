@@ -86,17 +86,19 @@ class Name
     def frequency_table(names)
       period = ['1930', '1930-1940', '1940-1950', '1950-1960', '1960-1970', '1970-1980', '1980-1990', '1990-2000', '2000-2010']
       title = 'Frequencia ao longo dos anos'
-      rows_name1 = remove_strings rows(name_frequency_for_decades(names[0]))
+      data_names = []
 
-      # Melhorar lógica, não usar um número mágico
-      if names.length == 2
-        rows_name2 = remove_strings rows(name_frequency_for_decades(names[1]))
-        rows_names = period.zip(rows_name1, rows_name2)
-        return puts Terminal::Table.new :title => title, :headings => ['Periodo', names[0], names[1]], :rows => rows_names
+      names.each do |name|
+        # Fazer tratamento quando é retornado um array vazio (nome não localizado)
+        data = remove_strings rows(name_frequency_for_decades(name))
+        data_names << data
       end
+      data_names.unshift(period)
 
-      rows = period.zip(rows_name1)
-      return puts Terminal::Table.new :title => title, :headings => ['Periodo', names[0]], :rows => rows
+      # BUG: alguns não inclue todas a decadas (normalmente são 9) isso gera um
+      # erro quando usado o metodo transpose, os arrays precisam ser do mesmo tamanho
+      rows_names = data_names.transpose
+      return puts Terminal::Table.new :title => title, :headings => ['Periodo'] + names, :rows => rows_names
     end
 
     private

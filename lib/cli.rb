@@ -21,6 +21,26 @@ class CLI
       exit
     end
 
+    def names_city_option
+      prompt = prompt_instance
+      puts 'É obrigatório o uso de acento'
+      # BUG: erro quando uma cidade é digitada com espaço no começo ou fim
+      city_name = prompt.ask('Digite uma cidade:')
+      Name.city_tables(city_name)
+      exit
+    end
+
+    def name_frequency_option
+      prompt = prompt_instance
+      puts 'Você pode pesquisar um ou mais nomes (serarados por vírgula)'
+      # BUG: erro quando os nomes são digitados com espaços sem vígulas
+      names = prompt.ask('Digite o(s) nome(s):') do |r|
+        r.convert -> (input) { input.split(/,\s*/) }
+      end
+      Name.frequency_table(names)
+      exit
+    end
+
     def exit
       prompt = prompt_instance
       prompt.select('') do |menu|
@@ -31,10 +51,10 @@ class CLI
     def main_menu
       system 'clear'
       prompt = prompt_instance
-      prompt.select('Escolha um opção') do |menu|
+      prompt.select('Escolha uma opção') do |menu|
         menu.choice 'Nomes mais comuns por UF', -> {names_state_option}
-        menu.choice 'Nomes mais comuns por cidade',  -> {}
-        menu.choice 'Frequência do uso de um nome ao longo dos anos',  -> {}
+        menu.choice 'Nomes mais comuns por cidade',  -> {names_city_option}
+        menu.choice 'Frequência do uso de um nome ao longo dos anos',  -> {name_frequency_option}
         menu.choice 'Sair',  -> {system "exit"}
       end
     end
