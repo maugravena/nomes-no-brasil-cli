@@ -1,72 +1,88 @@
 # Talvez eu poderia de criado apenas uma tabela chamada Localização,
 # com as cidades e estados
 
+# Obrigatório enviar nomes com acento, não encontrei um solução para buscar sem
+# considerar acentos no bando de dados
+
+# O que difere cidades e estado são os código, poderia ter apenas um método para
+# localização e outro para trazer por gênero
+
 class Name
   class << self
     # attr_accessor :name, :locale, :gender, :period, :frequency
 
     def endpoint
-      'https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking'
+      'https://servicodados.ibge.gov.br'
     end
 
-    def locality_url
-      "#{endpoint}?localidade="
+    def api_version
+      'v2'
     end
 
-    def state_id(state_initials)
-     state = State.find_by(initials: state_initials.upcase)
-
-      if state.blank?
-        return 'Estado não encontrado'
-      else
-        return state['id'].to_s
-      end
+    def ibge_url
+      "#{endpoint}/api/#{api_version}/censos"
     end
 
-    def city_id(city_name)
-      # Usuário é obrigado a enviar nomes com acento
+    def names_url
+      "#{ibge_url}/nomes"
+    end
+
+    def ranking_url
+      "#{names_url}/ranking"
+    end
+
+    def locality_filter
+      '?localidade='
+    end
+
+    def gender_filter
+      '&sexo='
+    end
+
+    def by_state(state_initials)
+      state = State.find_by(initials: state_initials.upcase)
+      return 'Estado não encontrado' if state.blank?
+
+      state_id = state['id']
+      url = "#{ranking_url}#{locality_filter}#{state_id}"
+      get_data(url)
+    end
+
+    def by_city(city_name)
       city = City.where('lower(name) = ?', city_name.downcase)
-      if city.blank?
-        return 'Cidade não encontrada'
-      else
-        return city[0]['id'].to_s
-      end
+      return 'Cidade não encontrada' if city.blank?
+
+      city_id = city[0]['id']
+      get_data("#{ranking_url}#{locality_filter}#{city_id}")
     end
 
-    def by_state(state_initials, gender='null')
-      id = state_id(state_initials)
+    def by_state_and_gender(state_initials, gender)
+      state = State.find_by(initials: state_initials.upcase)
+      return 'Estado não encontrado' if state.blank?
 
-      # Entender melhor como posso lidar com os erros
-      # achei estranho ter que retorna id, já que na verdade essa é uma mensagem de erro
-      if id.include? 'não'
-        id
-      else
-        get_data(id, gender)
-      end
+      state_id = state['id']
+      url = "#{ranking_url}#{locality_filter}#{state_id}#{gender_filter}#{gender}"
+      get_data(url)
     end
 
-    def by_city(city_name, gender='null')
-      id = city_id(city_name)
-      if id.include? 'não'
-        id
-      else
-        get_data(id, gender)
-      end
+    def by_city_and_gender(city_name, gender)
+      city = City.where('lower(name) = ?', city_name.downcase)
+      return 'Cidade não encontrada' if city.blank?
+
+      city_id = city[0]['id']
+      url = "#{ranking_url}#{locality_filter}#{city_id}#{gender_filter}#{gender}"
+      get_data(url)
     end
 
-    def by_state_and_gender(id, gender)
-      by_state(id, gender)
-    end
-
-    def by_city_and_gender(id, gender)
-
+    def name_frequency_for_decades(name)
+      get_data("#{names_url}/#{name}")
     end
 
     private
 
-    def get_data(id, gender)
+    def get_data(url)
       begin
-        JSON.parse(RestClient.get "#{locality_url}#{id}&sexo=#{gender}")
+        JSON.parse(RestClient.get url)
       rescue RestClient::ExceptionWithResponse => e
         puts e.response
       end

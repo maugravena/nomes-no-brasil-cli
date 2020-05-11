@@ -29,16 +29,6 @@ def remove_strings(arr)
   new_arr.flatten
 end
 
-def name_frequency(name)
-  # uri = URI.encode_www_form_component("#{name1}|#{name2}")
-  # url = "https://servicodados.ibge.gov.br/api/v2/censos/nomes/#{uri}"
-  begin
-    JSON.parse(RestClient.get "https://servicodados.ibge.gov.br/api/v2/censos/nomes/#{name}")
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-  end
-end
-
 def table(title, rows)
   Terminal::Table.new :title => title, :headings => ['Nome', 'Frequencia', 'Ranking'], :rows => rows
 end
