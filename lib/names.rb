@@ -6,6 +6,7 @@
 
 # O que difere cidades e estado são os código, poderia ter apenas um método para
 # localização e outro para trazer por gênero
+require 'csv'
 
 class Name
   class << self
@@ -39,6 +40,11 @@ class Name
       '&sexo='
     end
 
+    # 1 - le o arvivo CSV
+    # 2 - busca localidade pelo código
+    # 3 - pega numero da população
+    # 4 - calcular percentual baseado no numero de pessoas por nome
+
     def by_state(state_id)
       url = "#{ranking_url}#{locality_filter}#{state_id}"
       get_data(url)
@@ -66,9 +72,36 @@ class Name
 
     # Primeira opção - ranking de nomes por estado
     def state_tables(state_id)
-      puts table('Geral', rows(by_state(state_id)))
-      puts table('Sexo feminino', rows(by_state_and_gender(state_id, 'f')))
-      puts table('Sexo masculino', rows(by_state_and_gender(state_id, 'm')))
+      location_csv = find_location(state_id.to_s)
+      population = population(location_csv)
+
+      name_frequencies_general = name_frequencies(rows(by_state(state_id)))
+      name_frequencies_female= name_frequencies(rows(by_state_and_gender(state_id, 'f')))
+      name_frequencies_male = name_frequencies(rows(by_state_and_gender(state_id, 'm')))
+
+      percentage_names_general = []
+      percentage_names_female = []
+      percentage_names_male = []
+
+      name_frequencies_general.each do |n|
+        percentage_names_general << percentage_of_population(n, population)
+      end
+
+      name_frequencies_female.each do |n|
+        percentage_names_female<< percentage_of_population(n, population)
+      end
+
+      name_frequencies_male.each do |n|
+        percentage_names_male << percentage_of_population(n, population)
+      end
+
+      general_rows = rows(by_state(state_id)).each_with_index{|item, index| item << percentage_names_general[index]}
+      female_rows = rows(by_state_and_gender(state_id, 'f')).each_with_index{|item, index| item << percentage_names_female[index]}
+      male_rows = rows(by_state_and_gender(state_id, 'm')).each_with_index{|item, index| item << percentage_names_male[index]}
+
+      puts table('Geral', general_rows)
+      puts table('Sexo feminino', female_rows)
+      puts table('Sexo masculino', male_rows)
     end
 
     # Segunda opção - ranking de nomes por cidade
@@ -76,9 +109,37 @@ class Name
       city = City.where('lower(name) = ?', city_name.downcase)
       return p 'Cidade não encontrada' if city.blank?
 
-      puts table('Geral', rows(by_city(city)))
-      puts table('Sexo feminino', rows(by_city_and_gender(city, 'f')))
-      puts table('Sexo masculino', rows(by_city_and_gender(city, 'm')))
+      city_cod = city[0]['id'].to_s
+
+      location_csv = find_location(city_cod)
+      population = population(location_csv)
+      name_frequencies_general = name_frequencies(rows(by_city(city)))
+      name_frequencies_female= name_frequencies(rows(by_city_and_gender(city, 'f')))
+      name_frequencies_male = name_frequencies(rows(by_city_and_gender(city, 'm')))
+
+      percentage_names_general = []
+      percentage_names_female = []
+      percentage_names_male = []
+
+      name_frequencies_general.each do |n|
+        percentage_names_general << percentage_of_population(n, population)
+      end
+
+      name_frequencies_female.each do |n|
+        percentage_names_female<< percentage_of_population(n, population)
+      end
+
+      name_frequencies_male.each do |n|
+        percentage_names_male << percentage_of_population(n, population)
+      end
+
+      general_rows = rows(by_city(city)).each_with_index{|item, index| item << percentage_names_general[index]}
+      female_rows = rows(by_city_and_gender(city, 'f')).each_with_index{|item, index| item << percentage_names_female[index]}
+      male_rows = rows(by_city_and_gender(city, 'm')).each_with_index{|item, index| item << percentage_names_male[index]}
+
+      puts table('Geral', general_rows)
+      puts table('Sexo feminino', female_rows)
+      puts table('Sexo masculino', male_rows)
     end
 
     # Terceira opção - ranking de um nome específico ao longo de décadas
@@ -89,13 +150,13 @@ class Name
       data_names = []
 
       names.each do |name|
-        # Fazer tratamento quando é retornado um array vazio (nome não localizado)
+        # bugfix - Fazer tratamento quando é retornado um array vazio (nome não localizado)
         data = remove_strings rows(name_frequency_for_decades(name))
         data_names << data
       end
       data_names.unshift(period)
 
-      # BUG: alguns não inclue todas a decadas (normalmente são 9) isso gera um
+      # BUG: alguns nomes não incluem todas a decadas (normalmente são 9) isso gera um
       # erro quando usado o metodo transpose, os arrays precisam ser do mesmo tamanho
       rows_names = data_names.transpose
       return puts Terminal::Table.new :title => title, :headings => ['Periodo'] + names, :rows => rows_names
@@ -134,9 +195,35 @@ class Name
       new_arr.flatten
     end
 
+    def read_csv
+      CSV.read('db/populacao_2019.csv', liberal_parsing: true)
+    end
+
+    def find_location(cod)
+      locations = read_csv
+      locations.each do |l|
+        return l if l.include? cod
+      end
+    end
+
+    def population(location)
+      location[-1].to_i
+    end
+
+    def percentage_of_population(name_frequency, population)
+      result = name_frequency.to_f / population.to_f * 100.0
+      result.round(1)
+    end
+
+    def name_frequencies(data)
+      frequencies = []
+      data.each { |n| frequencies << n[1] }
+      frequencies
+    end
+
     # Tabela para usar nas opções de estados e cidades
     def table(title, rows)
-      Terminal::Table.new :title => title, :headings => ['Nome', 'Frequencia', 'Ranking'], :rows => rows
+      Terminal::Table.new :title => title, :headings => ['Nome', 'Frequencia', 'Ranking', 'Percentual'], :rows => rows
     end
   end
 end
