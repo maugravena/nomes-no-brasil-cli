@@ -24,8 +24,7 @@ class CLI
     def names_city_option
       prompt = prompt_instance
       puts 'É obrigatório o uso de acento'
-      # BUG: erro quando uma cidade é digitada com espaço no começo ou fim
-      city_name = prompt.ask('Digite uma cidade:')
+      city_name = prompt.ask('Digite uma cidade:').strip
       Name.city_tables(city_name)
       exit
     end
