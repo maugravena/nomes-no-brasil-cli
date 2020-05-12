@@ -72,9 +72,36 @@ class Name
 
     # Primeira opção - ranking de nomes por estado
     def state_tables(state_id)
-      puts table('Geral', rows(by_state(state_id)))
-      puts table('Sexo feminino', rows(by_state_and_gender(state_id, 'f')))
-      puts table('Sexo masculino', rows(by_state_and_gender(state_id, 'm')))
+      location_csv = find_location(state_id.to_s)
+      population = population(location_csv)
+
+      name_frequencies_general = name_frequencies(rows(by_state(state_id)))
+      name_frequencies_female= name_frequencies(rows(by_state_and_gender(state_id, 'f')))
+      name_frequencies_male = name_frequencies(rows(by_state_and_gender(state_id, 'm')))
+
+      percentage_names_general = []
+      percentage_names_female = []
+      percentage_names_male = []
+
+      name_frequencies_general.each do |n|
+        percentage_names_general << percentage_of_population(n, population)
+      end
+
+      name_frequencies_female.each do |n|
+        percentage_names_female<< percentage_of_population(n, population)
+      end
+
+      name_frequencies_male.each do |n|
+        percentage_names_male << percentage_of_population(n, population)
+      end
+
+      general_rows = rows(by_state(state_id)).each_with_index{|item, index| item << percentage_names_general[index]}
+      female_rows = rows(by_state_and_gender(state_id, 'f')).each_with_index{|item, index| item << percentage_names_female[index]}
+      male_rows = rows(by_state_and_gender(state_id, 'm')).each_with_index{|item, index| item << percentage_names_male[index]}
+
+      puts table('Geral', general_rows)
+      puts table('Sexo feminino', female_rows)
+      puts table('Sexo masculino', male_rows)
     end
 
     # Segunda opção - ranking de nomes por cidade
