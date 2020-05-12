@@ -40,11 +40,6 @@ class Name
       '&sexo='
     end
 
-    # 1 - le o arvivo CSV
-    # 2 - busca localidade pelo código
-    # 3 - pega numero da população
-    # 4 - calcular percentual baseado no numero de pessoas por nome
-
     def by_state(state_id)
       url = "#{ranking_url}#{locality_filter}#{state_id}"
       get_data(url)
@@ -150,7 +145,7 @@ class Name
       data_names = []
 
       names.each do |name|
-        # bugfix - Fazer tratamento quando é retornado um array vazio (nome não localizado)
+        # BUG:  Fazer tratamento quando é retornado um array vazio (nome não localizado)
         data = remove_strings rows(name_frequency_for_decades(name))
         data_names << data
       end
