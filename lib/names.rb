@@ -6,6 +6,7 @@
 
 # O que difere cidades e estado são os código, poderia ter apenas um método para
 # localização e outro para trazer por gênero
+require 'csv'
 
 class Name
   class << self
@@ -37,6 +38,30 @@ class Name
 
     def gender_filter
       '&sexo='
+    end
+
+    # 1 - le o arvivo CSV
+    # 2 - busca localidade pelo código
+    # 3 - pega numero da população
+    # 4 - calcular percentual baseado no numero de pessoas por nome
+    def read_csv
+      CSV.read('db/populacao_2019.csv', liberal_parsing: true)
+    end
+
+    def find_location(cod)
+      locations = read_csv
+      locations.each do |l|
+        return l if l.include? cod
+      end
+    end
+
+    def population(location)
+      location[-1]
+    end
+
+    def percentage_of_population(name_frequency, population)
+      result = (name_frequency.to_f / population.to_f * 100.0). * 10
+      result.round(1)
     end
 
     def by_state(state_id)
@@ -89,13 +114,13 @@ class Name
       data_names = []
 
       names.each do |name|
-        # Fazer tratamento quando é retornado um array vazio (nome não localizado)
+        # bugfix - Fazer tratamento quando é retornado um array vazio (nome não localizado)
         data = remove_strings rows(name_frequency_for_decades(name))
         data_names << data
       end
       data_names.unshift(period)
 
-      # BUG: alguns não inclue todas a decadas (normalmente são 9) isso gera um
+      # BUG: alguns nomes não incluem todas a decadas (normalmente são 9) isso gera um
       # erro quando usado o metodo transpose, os arrays precisam ser do mesmo tamanho
       rows_names = data_names.transpose
       return puts Terminal::Table.new :title => title, :headings => ['Periodo'] + names, :rows => rows_names
